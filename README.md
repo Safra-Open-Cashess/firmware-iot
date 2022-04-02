@@ -15,7 +15,7 @@ Plataforma de prototipagem eletrônica open-hardware programada em C/C++.
 Linguagem de programação multi-paradigma de uso geral.
 
 # Diagrama esquemático
-![DIAGRAMA](https://github.com/Safra-Open-Cashess/firmware-iot/tree/main/assets/schematics.png?raw=true)
+![DIAGRAMA](https://github.com/Safra-Open-Cashess/firmware-iot/blob/main/assets/schematics.png?raw=true)
 
 # Componentes utilizados
 - Arduino Uno
