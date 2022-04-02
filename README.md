@@ -1,4 +1,4 @@
-![LOGO](https://github.com/Safra-Open-Cashess/firmware-iot/tree/main/assets/github-firmware-iot.png)
+![LOGO](https://github.com/Safra-Open-Cashess/firmware-iot/blob/main/assets/github-firmware-iot.png?raw=true)
 
 # Firmware IoT
 Firmware do hardware desenvolvido utilizando a plataforma Arduino
@@ -15,7 +15,7 @@ Plataforma de prototipagem eletrônica open-hardware programada em C/C++.
 Linguagem de programação multi-paradigma de uso geral.
 
 # Diagrama esquemático
-![LOGO](https://github.com/Safra-Open-Cashess/firmware-iot/tree/main/assets/schematics.png)
+![DIAGRAMA](https://github.com/Safra-Open-Cashess/firmware-iot/tree/main/assets/schematics.png?raw=true)
 
 # Componentes utilizados
 - Arduino Uno
