@@ -2,6 +2,9 @@
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
 #include <MFRC522.h>
+#include <Ethernet.h>
+#include <EthernetClient.h>
+#include <Keypad.h>
 
 //RFID
 #define SS_PIN 8 //10 - PINO SDA
@@ -14,6 +17,16 @@ LiquidCrystal_I2C lcd(0x27, 2,1,0,4,5,6,7,3, POSITIVE);
 //Constants
 const int buzzer = 17;
 const int rfidPin = 14;
+
+//Ethernet
+const char kHostname[] = "opencashless.wilson.eng.br";
+const char kPath[] = "/api";
+const int kNetworkTimeout = 30*1000;
+const int kNetworkDelay = 1000;
+const byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+IPAddress ip(192, 168, 0, 201);
+IPAddress dns(192, 168, 0, 1);
+EthernetClient client;
 
 //Keypad
 const byte LINHAS = 4;
@@ -50,6 +63,14 @@ void setup() {
     //Ok
     buzzerTone(2, 1500, 200);
 
+    //Start ethernet
+    Serial.println("Conectando-se a rede...");
+    while(Ethernet.begin(mac) != 1){
+        Serial.println("Erro DHCP, tentando novamente...");
+        delay(3000);
+    }
+    Serial.println("Rede conectada!");
+
     delay(1000);
 
     welcomeMsgLCD();
@@ -61,19 +82,19 @@ void loop() {
     //Keyboard
     String valor = "";
     while(true){
-        char tecla_pressionada = key_board.getKey();
-        if (tecla_pressionada){
+        char pressed_key = key_board.getKey();
+        if (pressed_key){
             buzzerTone(1, 1000, 100);
             Serial.print("Tecla pressionada : ");
-            Serial.println(tecla_pressionada);
+            Serial.println(pressed_key);
 
-            if(tecla_pressionada == '*'){
-                tecla_pressionada = '.';
-            } else if(tecla_pressionada == '#'){
+            if(pressed_key == '*'){
+                pressed_key = '.';
+            } else if(pressed_key == '#'){
                 break;
             }
             
-            valor = valor + String(tecla_pressionada);
+            valor = valor + String(pressed_key);
             Serial.println(valor);
             
             lcd.setCursor(1, 1);
@@ -103,6 +124,25 @@ void loop() {
     digitalWrite(rfidPin, HIGH);
     buzzerTone(1, 2000, 1000);
     digitalWrite(rfidPin, LOW);
+
+    //Send data
+    delay(500);
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Enviando dados...");
+    String resp = postSale("{\"partner_id\": 1855, \"client_rfid\": \"" + rfid + "\", \"amount\": " + valor + "}");
+    Serial.println(resp);
+
+    //End
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Dados enviados!");
+
+    delay(1500);
+    lcd.setCursor(0, 0);
+    lcd.print(" Digite o valor");
+    lcd.setCursor(1, 1);
+    lcd.print("Open Cashless");
     
 }
 
@@ -158,4 +198,56 @@ void welcomeMsgLCD(){
 
     lcd.setCursor(0, 0);
     lcd.print(" Digite o valor");
+}
+
+String postSale(String data){
+
+    String line;
+    String response;
+    String statusCode;
+    
+    if(client.connect("opencashless.wilson.eng.br", 80)){
+        client.println("POST /api HTTP/1.1");
+        client.println("Host: opencashless.wilson.eng.br");
+        client.println("Content-Type: application/json");
+        client.println("Connection:close");
+        client.print("Content-Length:");
+        client.println(data.length());
+        
+        client.println();
+        client.print(data);
+        client.println();
+        client.println();
+
+        while(client.connected() && !client.available()){
+            delay(1);
+        }
+
+        Serial.println("INICIO");
+        while (client.connected() || client.available()) {
+            char c = client.read();
+            if(String(c) == "\n"){
+                //Serial.println("| " + line);
+                if(line.startsWith("{")){
+                    response = line;
+                } else if(line.startsWith("HTTP/")){
+                    statusCode = String(line[9]) + String(line[10]) + String(line[11]);
+                    Serial.println("statusCode: " + statusCode);
+                }
+                line = "";
+            } else {
+                line += c;
+            }
+        }
+        Serial.println("FIM");
+        
+        client.flush();
+        client.stop();
+    }
+
+    if(statusCode != "200"){
+        return "ERRO " + statusCode;
+    }
+    
+    return response;
 }
