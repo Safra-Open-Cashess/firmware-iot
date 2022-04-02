@@ -1,6 +1,12 @@
 #include <Wire.h> 
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
+#include <MFRC522.h>
+
+//RFID
+#define SS_PIN 8 //10 - PINO SDA
+#define RST_PIN 9 //9 - PINO DE RESET
+MFRC522 rfid(SS_PIN, RST_PIN);
 
 //Display
 LiquidCrystal_I2C lcd(0x27, 2,1,0,4,5,6,7,3, POSITIVE);
@@ -32,6 +38,10 @@ void setup() {
     //Serial
     Serial.begin(9600);
     while(!Serial);
+
+    //Start RFID
+    SPI.begin(); //INICIALIZA O BARRAMENTO SPI
+    rfid.PCD_Init(); //INICIALIZA MFRC522
 
     //Start Display
     lcd.begin(16,2);
@@ -77,8 +87,43 @@ void loop() {
     lcd.print("Aprox. pulseira");
     delay(400);
 
-    //Read RFID
+    //Led RFID
+    digitalWrite(rfidPin, HIGH);
+    delay(100);
+    digitalWrite(rfidPin, LOW);
+    delay(50);
+    digitalWrite(rfidPin, HIGH);
+    delay(150);
+    digitalWrite(rfidPin, LOW);
+
+    //Read RDID
+    String rfid = readRFID();
+
+    delay(1500);
+    digitalWrite(rfidPin, HIGH);
+    buzzerTone(1, 2000, 1000);
+    digitalWrite(rfidPin, LOW);
     
+}
+
+String readRFID(){
+    
+    //Wait for RFID
+    while(!rfid.PICC_ReadCardSerial());
+
+    String strID = "";
+    for (byte i = 0; i < 4; i++) {
+        strID +=
+        (rfid.uid.uidByte[i] < 0x10 ? "0" : "") +
+        String(rfid.uid.uidByte[i], HEX) +
+        (i!=3 ? ":" : "");
+    }
+    strID.toUpperCase();
+    
+    rfid.PICC_HaltA();
+    rfid.PCD_StopCrypto1();
+
+    return strID;
 }
 
 void buzzerTone(int x, int freq, int delayTime){
