@@ -19,7 +19,7 @@ const int buzzer = 17;
 const int rfidPin = 14;
 
 //Ethernet
-const char kHostname[] = "localhost:8080";
+const char kHostname[] = "ec2-54-165-208-25.compute-1.amazonaws.com:8080";
 const char kPath[] = "/api/v1/transacao";
 const int kNetworkTimeout = 30*1000;
 const int kNetworkDelay = 1000;
@@ -130,7 +130,7 @@ void loop() {
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Enviando dados...");
-    String resp = postSale("{\"partner_id\": 2, \"client_rfid\": \"" + rfid + "\", \"amount\": -" + valor + "}");
+    String resp = postSale("{\"partnerId\": 2, \"clientRfid\": \"" + rfid + "\", \"amount\": -" + valor + "}");
     Serial.println(resp);
 
     //End
@@ -206,7 +206,7 @@ String postSale(String data){
     String response;
     String statusCode;
     
-    if(client.connect("localhost", 8080)){
+    if(client.connect("ec2-54-165-208-25.compute-1.amazonaws.com", 8080)){
         client.println("POST /api/v1/transacao HTTP/1.1");
         client.println("Host: localhost");
         client.println("Content-Type: application/json");
