@@ -19,8 +19,8 @@ const int buzzer = 17;
 const int rfidPin = 14;
 
 //Ethernet
-const char kHostname[] = "opencashless.wilson.eng.br";
-const char kPath[] = "/api";
+const char kHostname[] = "localhost:8080";
+const char kPath[] = "/api/v1/transacao";
 const int kNetworkTimeout = 30*1000;
 const int kNetworkDelay = 1000;
 const byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
@@ -130,7 +130,7 @@ void loop() {
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Enviando dados...");
-    String resp = postSale("{\"partner_id\": 1855, \"client_rfid\": \"" + rfid + "\", \"amount\": " + valor + "}");
+    String resp = postSale("{\"partner_id\": 2, \"client_rfid\": \"" + rfid + "\", \"amount\": -" + valor + "}");
     Serial.println(resp);
 
     //End
@@ -206,9 +206,9 @@ String postSale(String data){
     String response;
     String statusCode;
     
-    if(client.connect("opencashless.wilson.eng.br", 80)){
-        client.println("POST /api HTTP/1.1");
-        client.println("Host: opencashless.wilson.eng.br");
+    if(client.connect("localhost", 8080)){
+        client.println("POST /api/v1/transacao HTTP/1.1");
+        client.println("Host: localhost");
         client.println("Content-Type: application/json");
         client.println("Connection:close");
         client.print("Content-Length:");
